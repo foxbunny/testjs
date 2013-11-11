@@ -1,0 +1,141 @@
+#TestJS
+
+Simple testing and assertion framework for JavaScript.
+
+## Features
+
+TestJS supports the following features:
+
+ + Runs all tests inside the browser
+ + Outputs all results to console rather than to page
+ + Can use the page in which it runs as DOM fixture
+ + Can load additional DOM fixtures via AJAX
+ + Timing for individual tests as well as whole test suite
+ + Asynchornous tests
+ + Can be used with AMD module loaders
+
+Still things to add:
+
+ + Docs
+ + Command line support
+ + Automated runners for multiple browsers
+ + Support for external assertion libraries like Chai
+
+## Basics
+
+There are three classes in the test module. Individual tests are created using
+the `test.Test` class. Tests can be grouped into test sets which are created
+using `test.TestSet` class, and sets are grouped into suites using
+`test.TestSuite` class.
+
+### Individual tests
+
+Let's take a look at the simplest scneario where we write just simple tests
+using the `test.Test` class.
+
+    var Test = test.Test;
+    var myFunc = function (a, b) { return a + b; };
+
+    new Test(myFunc, 'adds a and b', function () {
+        var res = myFunc(1, 1);
+        this.is.equal(res, 2);
+    });
+
+    new Test(myFunc, 'returns NaN if a is not a number', function() {
+        var res = myFunc(null, 1);
+        this.is.equal(res, NaN);
+    });
+
+The `test.Test` constructor takes four arguments of which the first three are
+generally useful. The first argument is the test subject (object we are
+testing). This is used when test fails so we can see the subject in the
+console for debugging purposes. Second argument is a description, which is
+printed in the console for our reference. Third argument is the test function.
+
+Test functions are bound to their `test.Test` instances, and all test instances
+have the `assert` method (with `is` and `should` aliases) which can be used to
+assert various properties of the test result, and has many shortcut functions.
+
+### Test sets
+
+Let's organize the two tests into a test set now.
+
+    var TestSet = test.TestSet;
+    var myFunc = function (a, b) { return a + b; };
+
+    var myFuncSet = new TestSet('myFunc tests');
+
+    myFuncSet.test(myFunc, 'adds a and b', function () {
+        var res = myFunc(1, 1);
+        this.is.equal(res, 2);
+    });
+
+    myFuncSet.test(myFunc, 'returns NaN if a is not a number', function() {
+        var res = myFunc(null, 1);
+        this.is.equal(res, NaN);
+    });
+
+    myFuncSet.run();
+
+As you can see, changes are minimal. Instead of instantiating tests directly,
+we are using the test set's `test` method to create new tests.
+
+You'll notice a big difference in the way tests behave, though. When using
+simpe `test.Test` instances, tests are run immediately when the instance is
+instantiated. When running as a set, tests are run when the set's `run()`
+method is called. Furthermore, you will get useful stats at the bottom such as
+number of passing/failing tests and total run time for the set.
+
+Another difference is that asynchronous tests are run sequentially when using
+sets (e.g., text that comes after a test that does AJAX will wait for the AJAX
+test to finish). There is currently no way to run asynchornous tests in
+parallel.
+
+When using test sets, we can also ask the set to load fixtures remotely using
+AJAX (note that you need to start an HTTP server to use this feature because of
+same-origin policy which does not apply to `file://` URLs in some browsers).
+
+To load a fixture, pass the `delay` (third) and `fixture` (fourth) arguments to
+the constructor:
+
+    var myFuncSet = new TestSet('myFunc tests', null, 100, 'fixtures/my.html');
+
+The second argument is skipped because it is only used when dealing with test 
+suites. The third argument is a delay (in milliseconds) after loading the
+fixture into DOM tree before the tests start. You should set a generous delay
+if you expect other resources to be loaded (images, for instance) and your
+tests depend on them. The fixture URL is relative to the page and is expected
+to be plain HTML. No processing is done and the fixture is inserted into
+document body as is.
+
+If you want to add functions that should be executed before/after all test or
+before/after each test, you can use the following methods:
+
+    myFuncSet.beforeAll(fn);
+    myFuncSet.afterAll(fn);
+    myFuncSet.beforeEach(fn);
+    myFuncSet.afterEach(fn);
+
+Note that these functions are executed synchornously and expected to be
+syncrhonous. Support for asynchornous setup/teardown functions and support for
+teardown functions which take asynchronous test functions into account will be
+added in future.
+
+### Test suite
+
+You can create multple test sets and group them into a test suite as well.
+
+Let's take a look at how to do this.
+
+    var TestSet = test.TestSet;
+    var TestSuite = test.TestSuite;
+
+    myTestSuite = new TestSuite();
+
+    myFuncTest1 = TestSet('my func 1', myTestSuite);
+    myFuncTest2 = TestSet('my func 2', myTestSuite);
+
+    myTestSuite.run();
+
+There is not much to suites. They merely group sets and run them sequentially.
+They will also print statisstics at the bottom when all tests have been run.
