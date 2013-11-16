@@ -86,7 +86,10 @@
       members = a1.every(function(i, idx){
         return a2[idx] === i;
       });
-      return assert(lengths && members, message);
+      return assert(lengths && members, message, {
+        got: a1,
+        expected: a2
+      });
     };
     assert.deepEqual = function(o1, o2, message){
       var o1s, o2s, e, compare;
@@ -187,16 +190,19 @@
       }
     };
     assert.format = function(rxp, s, message){
+      var m;
       message == null && (message = s + " should match " + rxp);
-      return assert(rxp.test(s), message);
+      return assert(m = rxp.test(s), message, m);
     };
     assert.match = function(rxp, s, matches, message){
+      var m;
       message == null && (message = s + " match against " + rxp + " should return " + matches);
-      return assert.array(s.match(rxp), matches, message);
+      return assert.array(m = s.match(rxp), matches, message);
     };
     assert.capturing = function(rxp, s, matches, message){
+      var m;
       message == null && (message = s + " match against " + rxp + " should capture " + matches);
-      return assert.array(s.match(rxp).slice(1), matches, message);
+      return assert.array(m = s.match(rxp).slice(1), matches, message);
     };
     assert.except = assert.thows = assert.exception;
     assert.regexp = assert.format;

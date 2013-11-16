@@ -65,7 +65,9 @@ define ->
   assert.array = (a1, a2, message = "#{a1} should be same as #{a2}") ->
     lengths = a1.length is a2.length
     members = a1.every (i, idx) -> a2[idx] is i
-    assert (lengths and members), message
+    assert (lengths and members), message,
+      got: a1
+      expected: a2
 
   assert.deep-equal = (o1, o2, message) ->
     try
@@ -144,7 +146,7 @@ define ->
         assert.equal '' + err, string, (message or "#{fn} should throw #{string}"), err
 
   assert.format = (rxp, s, message = "#{s} should match #{rxp}") ->
-    assert (rxp.test s), message
+    assert m = (rxp.test s), message, m
 
   assert.match = (rxp, s, matches, message = "#{s} match against #{rxp} should return #{matches}") ->
     assert.array (s.match rxp), matches, message
