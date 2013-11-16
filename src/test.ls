@@ -63,7 +63,7 @@ define ->
     assert v1 ~= v2, message
 
   assert.array = (a1, a2, message = "#{a1} should be same as #{a2}") ->
-    lengts = a1.length is a2.length
+    lengths = a1.length is a2.length
     members = a1.every (i, idx) -> a2[idx] is i
     assert (lengths and members), message
 

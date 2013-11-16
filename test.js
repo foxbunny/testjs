@@ -80,9 +80,9 @@
       return assert(v1 == v2, message);
     };
     assert.array = function(a1, a2, message){
-      var lengts, members;
+      var lengths, members;
       message == null && (message = a1 + " should be same as " + a2);
-      lengts = a1.length === a2.length;
+      lengths = a1.length === a2.length;
       members = a1.every(function(i, idx){
         return a2[idx] === i;
       });
