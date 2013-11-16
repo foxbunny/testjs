@@ -195,14 +195,16 @@
       return assert(m = rxp.test(s), message, m);
     };
     assert.match = function(rxp, s, matches, message){
-      var m;
       message == null && (message = s + " match against " + rxp + " should return " + matches);
-      return assert.array(m = s.match(rxp), matches, message);
+      return assert.array(s.match(rxp), matches, message);
     };
     assert.capturing = function(rxp, s, matches, message){
-      var m;
       message == null && (message = s + " match against " + rxp + " should capture " + matches);
-      return assert.array(m = s.match(rxp).slice(1), matches, message);
+      return assert.array(s.match(rxp).slice(1), matches, message);
+    };
+    assert.notMatch = function(rxp, s, message){
+      message == null && (message = s + " should not match against " + rxp);
+      return assert(s.match(rxp) === null, message);
     };
     assert.except = assert.thows = assert.exception;
     assert.regexp = assert.format;

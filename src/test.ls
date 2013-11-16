@@ -154,6 +154,9 @@ define ->
   assert.capturing = (rxp, s, matches, message = "#{s} match against #{rxp} should capture #{matches}") ->
     assert.array (s.match rxp .slice 1), matches, message
 
+  assert.not-match = (rxp, s, message = "#{s} should not match against #{rxp}") ->
+    assert (s.match rxp) is null, message
+
   assert.except = assert.thows = assert.exception
   assert.regexp = assert.format
   assert.matches = assert.match
