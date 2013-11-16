@@ -208,6 +208,7 @@
           this.desc = desc;
           this.fn = fn;
           this.set = set;
+          this.it = this.subject;
         }
         prototype.timeout = 10000;
         prototype.later = 10;

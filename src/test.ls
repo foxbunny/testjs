@@ -159,9 +159,10 @@ define ->
 
   Test: class Test
     (@subject, @desc, @fn, @set) ->
+      @it = @subject ## alias
 
-    timeout: 10_000
-    later: 10
+    timeout: 10_000ms
+    later: 10ms
     timer: null
     log-pass: true
 
@@ -226,7 +227,7 @@ define ->
     find: dom
     fetch: dom
 
-  Test-set: class Test-set
+  TestSet: class TestSet
     (@name, @suite, @delay = 0, @fixture = void) ->
       @suite?.add @
       @tests = []
@@ -314,7 +315,7 @@ define ->
       @error += 1
       @next!
 
-  Test-suite: class Test-suite
+  TestSuite: class TestSuite
     ->
       @sets = []
       @count = 0
