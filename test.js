@@ -59,40 +59,44 @@
         }
       }
     });
+    assert.assert = assert;
     assert['true'] = function(expr, message){
       message == null && (message = expr + " should be true");
-      return assert(!!expr, message);
+      return this.assert(!!expr, message);
     };
     assert['false'] = function(expr, message){
       message == null && (message = expr + " should be false");
-      return assert(!expr, message);
+      return this.assert(!expr, message);
     };
     assert.equal = function(v1, v2, message){
       message == null && (message = v1 + " should equal " + v2);
-      return assert(v1 === v2, message);
+      return this.assert(v1 === v2, message);
     };
     assert.notEqual = function(v1, v2, message){
       message == null && (message = v1 + " should not equal " + v2);
-      return assert(v1 !== v2, message);
+      return this.assert(v1 !== v2, message);
     };
     assert.similar = function(v1, v2, message){
       message == null && (message = v1 + " should be similar to " + v2);
-      return assert(v1 == v2, message);
+      return this.assert(v1 == v2, message);
     };
     assert.array = function(a1, a2, message){
       var lengths, members;
       message == null && (message = a1 + " should be same as " + a2);
+      if (a1 == null || a2 == null) {
+        return this.assert(false, message);
+      }
       lengths = a1.length === a2.length;
       members = a1.every(function(i, idx){
         return a2[idx] === i;
       });
-      return assert(lengths && members, message, {
+      return this.assert(lengths && members, message, {
         got: a1,
         expected: a2
       });
     };
     assert.deepEqual = function(o1, o2, message){
-      var o1s, o2s, e, compare;
+      var o1s, o2s, e, compare, this$ = this;
       try {
         o1s = JSON.stringify(o1);
         o2s = JSON.stringify(o2);
@@ -108,20 +112,20 @@
       compare = function(o1, o2){
         var key, own$ = {}.hasOwnProperty, results$ = [];
         if (o1 == null || o2 == null) {
-          throw new AssertionError(message, [o1s, o2s]);
+          this$.assert(false, message, [o1s, o2s]);
         }
         if (toString$.call(o1).slice(8, -1) !== toString$.call(o2).slice(8, -1)) {
-          throw new AssertionError(message, [o1s, o2s]);
+          this$.assert(false, message, [o1s, o2s]);
         }
         if (deepEq$(o1, o2, '===')) {
           return true;
         }
         if (Object.keys(o1).length !== Object.keys(o2).length) {
-          throw new AssertionError(message, [o1s, o2s]);
+          this$.assert(false, message, [o1s, o2s]);
         }
         for (key in o1) if (own$.call(o1, key)) {
           if (o2[key] == null) {
-            throw new AssertionError(message, [o1s, o2s]);
+            this$.asser(false, message, [o1s, o2s]);
           }
           results$.push(compare(o1[key], o2[key]));
         }
@@ -131,85 +135,91 @@
     };
     assert.defined = function(v, message){
       message == null && (message = v + " should be defined");
-      return assert(typeof v !== 'undefined', message);
+      return this.assert(typeof v !== 'undefined', message);
     };
     assert.undef = function(v, message){
       message == null && (message = v + " should be undefined");
-      return assert(typeof v === 'undefined', message);
+      return this.assert(typeof v === 'undefined', message);
     };
     assert.ctor = function(obj, ctor, message){
       message == null && (message = obj + " should be instance of " + ctor);
-      return assert(obj instanceof ctor, message);
+      return this.assert(obj instanceof ctor, message);
     };
     assert.element = function(obj, message){
       message == null && (message = obj + " should be a DOM node");
-      return assert(obj instanceof window.Element, message);
+      return this.assert(obj instanceof window.Element, message);
     };
     assert.elements = function(obj, message){
       var isNodeList, isHtmlCollection;
       message == null && (message = obj + " should be a node list");
       isNodeList = obj instanceof window.NodeList;
       isHtmlCollection = obj instanceof window.HTMLElementsCollection;
-      return assert(isNodeList || isHtmlCollection, message);
+      return this.assert(isNodeList || isHtmlCollection, message);
     };
     assert.elementType = function(obj, type, message){
       message == null && (message = obj + " should be a node of type " + type);
-      return assert(obj.tagName.toLowerCase() === type, message);
+      return this.assert(obj.tagName.toLowerCase() === type, message);
     };
     assert.attributeValue = function(obj, name, value, message){
       var attr;
       message == null && (message = obj + " should have " + name + " attribute with value of " + value);
       attr = obj.getAttribute(name);
-      return assert.equal(attr, value, message);
+      return this.equal(attr, value, message);
     };
     assert.type = function(v, type, message){
       message == null && (message = v + " should be " + type);
-      return assert(toString$.call(v).slice(8, -1) === type, message);
+      return this.assert(toString$.call(v).slice(8, -1) === type, message);
     };
     assert.method = function(obj, method, message){
       message == null && (message = obj + " should have method " + method);
       method = obj[method];
-      return assert(method != null && toString$.call(method).slice(8, -1) === 'Function', message);
+      return this.assert(method != null && toString$.call(method).slice(8, -1) === 'Function', message);
     };
     assert.exception = function(fn, exception, msg, string, message){
       var err;
       try {
         fn();
-        throw new AssertionError(message || fn + " should throw an exception");
+        return this.assert(false, message || fn + " should throw an exception");
       } catch (e$) {
         err = e$;
         if (exception != null) {
-          assert(err instanceof exception, message || fn + " shoud throw " + exception, err);
+          this.assert(err instanceof exception, message || fn + " shoud throw " + exception, err);
         }
         if (msg != null) {
-          assert.equal(err.message, msg, message || fn + " should throw " + msg, err);
+          this.equal(err.message, msg, message || fn + " should throw " + msg, err);
         }
         if (string != null) {
-          return assert.equal('' + err, string, message || fn + " should throw " + string, err);
+          return this.equal('' + err, string, message || fn + " should throw " + string, err);
         }
       }
     };
     assert.format = function(rxp, s, message){
       var m;
       message == null && (message = s + " should match " + rxp);
-      return assert(m = rxp.test(s), message, m);
+      return this.assert(m = rxp.test(s), message, m);
     };
     assert.match = function(rxp, s, matches, message){
       message == null && (message = s + " match against " + rxp + " should return " + matches);
-      return assert.array(s.match(rxp), matches, message);
+      return this.array(s.match(rxp), matches, message);
     };
     assert.capturing = function(rxp, s, matches, message){
       message == null && (message = s + " match against " + rxp + " should capture " + matches);
-      return assert.array(s.match(rxp).slice(1), matches, message);
+      return this.array(s.match(rxp).slice(1), matches, message);
     };
-    assert.notMatch = function(rxp, s, message){
-      message == null && (message = s + " should not match against " + rxp);
-      return assert(s.match(rxp) === null, message);
-    };
-    assert.except = assert.thows = assert.exception;
+    assert.except = assert['throw'] = assert.throwing = assert.exception;
     assert.regexp = assert.format;
     assert.matches = assert.match;
     assert.capture = assert.captured = assert.capturing;
+    assert.not = function(expr, message, data){
+      if (!/should not/.test(message)) {
+        message = message.replace('should', 'should not');
+      }
+      if (expr) {
+        throw new AssertionError(message, data);
+      }
+    };
+    import$(assert.not, assert);
+    assert.not.assert = assert.not;
     dom = function(id){
       return document.getElementById(id);
     };

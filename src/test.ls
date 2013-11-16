@@ -47,25 +47,28 @@ define ->
   assert: assert = (expr, message, data) ->
     throw new AssertionError message, data if not expr
 
+  assert.assert = assert
+
   assert.true = (expr, message = "#{expr} should be true") ->
-    assert !!expr, message
+    @assert !!expr, message
 
   assert.false = (expr, message = "#{expr} should be false") ->
-    assert !expr, message
+    @assert !expr, message
 
   assert.equal = (v1, v2, message = "#{v1} should equal #{v2}") ->
-    assert v1 is v2, message
+    @assert v1 is v2, message
 
   assert.not-equal = (v1, v2, message = "#{v1} should not equal #{v2}") ->
-    assert v1 isnt v2, message
+    @assert v1 isnt v2, message
 
   assert.similar = (v1, v2, message = "#{v1} should be similar to #{v2}") ->
-    assert v1 ~= v2, message
+    @assert v1 ~= v2, message
 
   assert.array = (a1, a2, message = "#{a1} should be same as #{a2}") ->
+    return @assert false, message if (not a1?) or (not a2?)
     lengths = a1.length is a2.length
     members = a1.every (i, idx) -> a2[idx] is i
-    assert (lengths and members), message,
+    @assert (lengths and members), message,
       got: a1
       expected: a2
 
@@ -82,85 +85,90 @@ define ->
       ## This surely means o1 and o2 are identical
       return
 
-    compare = (o1, o2) ->
+    compare = (o1, o2) ~>
       if not o1? or not o2?
-        throw new AssertionError message, [o1s, o2s]
+        @assert false, message, [o1s, o2s]
 
       if typeof! o1 isnt typeof! o2
-        throw new AssertionError message, [o1s, o2s]
+        @assert false, message, [o1s, o2s]
 
       if o1 === o2
         return true
 
       if Object.keys o1 .length isnt Object.keys o2 .length
-        throw new AssertionError message, [o1s, o2s]
+        @assert false, message, [o1s, o2s]
 
       for own key of o1
         if not o2[key]?
-          throw new AssertionError message, [o1s, o2s]
+          @asser false, message, [o1s, o2s]
         compare o1[key], o2[key]
 
     compare o1, o2
 
   assert.defined = (v, message = "#{v} should be defined") ->
-    assert typeof v isnt 'undefined', message
+    @assert typeof v isnt 'undefined', message
 
   assert.undef = (v, message = "#{v} should be undefined") ->
-    assert typeof v is 'undefined', message
+    @assert typeof v is 'undefined', message
 
   assert.ctor = (obj, ctor, message = "#{obj} should be instance of #{ctor}") ->
-    assert obj instanceof ctor, message
+    @assert obj instanceof ctor, message
 
   assert.element = (obj, message = "#{obj} should be a DOM node") ->
-    assert obj instanceof window.Element, message
+    @assert obj instanceof window.Element, message
 
   assert.elements = (obj, message = "#{obj} should be a node list") ->
     is-node-list = obj instanceof window.Node-list
     is-html-collection = obj instanceof window.HTML-elements-collection
-    assert (is-node-list or is-html-collection), message
+    @assert (is-node-list or is-html-collection), message
 
   assert.element-type = (obj, type, message = "#{obj} should be a node of type #{type}") ->
-    assert obj.tag-name.to-lower-case! is type, message
+    @assert obj.tag-name.to-lower-case! is type, message
 
   assert.attribute-value = (obj, name, value, message = "#{obj} should have #{name} attribute with value of #{value}") ->
     attr = obj.get-attribute name
-    assert.equal attr, value, message
+    @equal attr, value, message
 
   assert.type = (v, type, message = "#{v} should be #{type}") ->
-    assert typeof! v is type, message
+    @assert typeof! v is type, message
 
   assert.method = (obj, method, message = "#{obj} should have method #{method}") ->
     method = obj[method]
-    assert (method? and typeof! method is 'Function'), message
+    @assert (method? and typeof! method is 'Function'), message
 
   assert.exception = (fn, exception, msg, string, message) ->
     try
       fn!
-      throw new AssertionError (message or "#{fn} should throw an exception")
+      @assert false, (message or "#{fn} should throw an exception")
     catch err
       if exception?
-        assert err instanceof exception, (message or "#{fn} shoud throw #{exception}"), err
+        @assert err instanceof exception, (message or "#{fn} shoud throw #{exception}"), err
       if msg?
-        assert.equal err.message, msg, (message or "#{fn} should throw #{msg}"), err
+        @equal err.message, msg, (message or "#{fn} should throw #{msg}"), err
       if string?
-        assert.equal '' + err, string, (message or "#{fn} should throw #{string}"), err
+        @equal '' + err, string, (message or "#{fn} should throw #{string}"), err
 
   assert.format = (rxp, s, message = "#{s} should match #{rxp}") ->
-    assert m = (rxp.test s), message, m
+    @assert m = (rxp.test s), message, m
 
   assert.match = (rxp, s, matches, message = "#{s} match against #{rxp} should return #{matches}") ->
-    assert.array (s.match rxp), matches, message
+    @array (s.match rxp), matches, message
 
   assert.capturing = (rxp, s, matches, message = "#{s} match against #{rxp} should capture #{matches}") ->
-    assert.array (s.match rxp .slice 1), matches, message
+    @array (s.match rxp .slice 1), matches, message
 
-  assert.not-match = (rxp, s, message = "#{s} should not match against #{rxp}") ->
-    assert (s.match rxp) is null, message
-
-  assert.except = assert.thows = assert.exception
+  assert.except = assert.throw = assert.throwing = assert.exception
   assert.regexp = assert.format
   assert.matches = assert.match
   assert.capture = assert.captured = assert.capturing
+
+  assert.not = (expr, message, data) ->
+    if not /should not/.test message
+      message = message.replace 'should', 'should not'
+    throw new AssertionError message, data if expr
+
+  assert.not <<< assert
+  assert.not.assert = assert.not
 
   dom = (id) ->
     document.get-element-by-id id
