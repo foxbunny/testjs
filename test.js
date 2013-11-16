@@ -186,7 +186,22 @@
         }
       }
     };
-    assert.except = assert.exception;
+    assert.format = function(rxp, s, message){
+      message == null && (message = s + " should match " + rxp);
+      return assert(rxp.test(s), message);
+    };
+    assert.match = function(rxp, s, matches, message){
+      message == null && (message = s + " match against " + rxp + " should return " + matches);
+      return assert.array(s.match(rxp), matches, message);
+    };
+    assert.capturing = function(rxp, s, matches, message){
+      message == null && (message = s + " match against " + rxp + " should capture " + matches);
+      return assert.array(s.match(rxp).slice(1), matches, message);
+    };
+    assert.except = assert.thows = assert.exception;
+    assert.regexp = assert.format;
+    assert.matches = assert.match;
+    assert.capture = assert.captured = assert.capturing;
     dom = function(id){
       return document.getElementById(id);
     };

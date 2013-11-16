@@ -143,7 +143,19 @@ define ->
       if string?
         assert.equal '' + err, string, (message or "#{fn} should throw #{string}"), err
 
-  assert.except = assert.exception
+  assert.format = (rxp, s, message = "#{s} should match #{rxp}") ->
+    assert (rxp.test s), message
+
+  assert.match = (rxp, s, matches, message = "#{s} match against #{rxp} should return #{matches}") ->
+    assert.array (s.match rxp), matches, message
+
+  assert.capturing = (rxp, s, matches, message = "#{s} match against #{rxp} should capture #{matches}") ->
+    assert.array (s.match rxp .slice 1), matches, message
+
+  assert.except = assert.thows = assert.exception
+  assert.regexp = assert.format
+  assert.matches = assert.match
+  assert.capture = assert.captured = assert.capturing
 
   dom = (id) ->
     document.get-element-by-id id
